@@ -23,5 +23,6 @@
       "@Common": ["src/common/index"],
       "@Config": ["src/configs/index"]
     }
-  }
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts"]
 }

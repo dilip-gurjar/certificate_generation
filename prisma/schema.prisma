@@ -1,20 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider      = "prisma-client"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
-}
-
-enum AdminStatus {
-  Active @map("active")
-
-  @@map("admin_status")
 }
 
 model Admin {
@@ -34,17 +26,10 @@ model Admin {
 model AdminMeta {
   passwordSalt String? @map("password_salt")
   passwordHash String? @map("password_hash")
+  adminId      Int     @unique @map("admin_id")
   admin        Admin   @relation(fields: [adminId], references: [id])
-  adminId      Int     @unique() @map("admin_id")
 
   @@map("admin_meta")
-}
-
-enum UserStatus {
-  Active  @map("active")
-  Blocked @map("blocked")
-
-  @@map("user_status")
 }
 
 model User {
@@ -71,17 +56,10 @@ model UserMeta {
   googleId     String? @unique @map("google_id")
   passwordSalt String? @map("password_salt")
   passwordHash String? @map("password_hash")
+  userId       Int     @unique @map("user_id")
   user         User    @relation(fields: [userId], references: [id])
-  userId       Int     @unique() @map("user_id")
 
   @@map("user_meta")
-}
-
-enum OtpTransport {
-  Email  @map("email")
-  Mobile @map("mobile")
-
-  @@map("otp_transport")
 }
 
 model Otp {
@@ -96,6 +74,76 @@ model Otp {
 
   @@unique([transport, target])
   @@map("otp")
+}
+
+model Setting {
+  id               Int             @id @default(autoincrement())
+  mappedTo         String          @map("mapped_to")
+  text             String          @default("")
+  description      String          @default("")
+  type             SettingType
+  context          SettingContext
+  default          Json
+  isDefinedOptions Boolean         @map("is_defined_options")
+  parentId         Int?            @map("parent_id")
+  dependsOn        Setting?        @relation("SubSettings", fields: [parentId], references: [id])
+  subSettings      Setting[]       @relation("SubSettings")
+  options          SettingOption[]
+  systemSettings   SystemSetting?
+  userSettings     UserSetting[]
+
+  @@unique([context, mappedTo])
+  @@map("setting")
+}
+
+model SettingOption {
+  id        Int     @id @default(autoincrement())
+  text      String  @default("")
+  value     String
+  settingId Int     @map("setting_id")
+  setting   Setting @relation(fields: [settingId], references: [id])
+
+  @@unique([settingId, value])
+  @@map("setting_option")
+}
+
+model UserSetting {
+  selection Json
+  userId    Int     @map("user_id")
+  settingId Int     @map("setting_id")
+  setting   Setting @relation(fields: [settingId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@id([userId, settingId])
+  @@map("user_setting")
+}
+
+model SystemSetting {
+  selection Json
+  settingId Int     @id @map("setting_id")
+  setting   Setting @relation(fields: [settingId], references: [id])
+
+  @@map("system_setting")
+}
+
+enum AdminStatus {
+  Active @map("active")
+
+  @@map("admin_status")
+}
+
+enum UserStatus {
+  Active  @map("active")
+  Blocked @map("blocked")
+
+  @@map("user_status")
+}
+
+enum OtpTransport {
+  Email  @map("email")
+  Mobile @map("mobile")
+
+  @@map("otp_transport")
 }
 
 enum SettingType {
@@ -113,53 +161,28 @@ enum SettingContext {
   @@map("setting_context")
 }
 
-model Setting {
-  id               Int             @id @default(autoincrement())
-  mappedTo         String          @map("mapped_to")
-  text             String          @default("")
-  description      String          @default("")
-  type             SettingType
-  context          SettingContext
-  default          Json
-  isDefinedOptions Boolean         @map("is_defined_options")
-  subSettings      Setting[]       @relation("SubSettings")
-  dependsOn        Setting?        @relation("SubSettings", fields: [parentId], references: [id])
-  parentId         Int?            @map("parent_id")
-  options          SettingOption[]
-  userSettings     UserSetting[]
-  systemSettings   SystemSetting[]
+model Employee {
+  id              Int       @id @default(autoincrement())
+  name            String
+  workEmail       String    @unique
+  personalEmail   String?   @unique
+  joiningDate     DateTime
+  leavingDate     DateTime?
+  did             String?   @unique
+  organizationDid String?
 
-  @@unique([context, mappedTo])
-  @@map("setting")
+  certificateData Json?
+
+  createdAt   DateTime     @default(now())
+  certificate Certificate?
+  deletedAt   DateTime?
 }
 
-model SettingOption {
-  id        Int     @id @default(autoincrement())
-  text      String  @default("")
-  value     String
-  setting   Setting @relation(fields: [settingId], references: [id])
-  settingId Int     @map("setting_id")
+model Certificate {
+  id                    Int      @id @default(autoincrement())
+  employeeId            Int      @unique
+  verifiableCredentials Json
+  issuedAt              DateTime @default(now())
 
-  @@unique([settingId, value])
-  @@map("setting_option")
-}
-
-model UserSetting {
-  selection Json
-  user      User    @relation(fields: [userId], references: [id])
-  userId    Int     @map("user_id")
-  setting   Setting @relation(fields: [settingId], references: [id])
-  settingId Int     @map("setting_id")
-
-  @@id([userId, settingId])
-  @@map("user_setting")
-}
-
-model SystemSetting {
-  selection Json
-  setting   Setting @relation(fields: [settingId], references: [id])
-  settingId Int     @map("setting_id")
-
-  @@id([settingId])
-  @@map("system_setting")
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: SetNull)
 }

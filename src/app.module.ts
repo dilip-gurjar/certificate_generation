@@ -13,6 +13,9 @@ import { MetricsInterceptor, MetricsModule, MetricsService } from './metrics';
 import { PrismaModule } from './prisma';
 import { AuthModule } from './auth';
 import { RedisModule } from './redis';
+import { EmployeeModule } from './employee/employee.module';
+import { CertificateModule } from './certificate/certificate.module';
+import { DidModule } from './did/did.module';
 
 @Module({
   imports: [
@@ -36,6 +39,9 @@ import { RedisModule } from './redis';
     PrismaModule,
     RedisModule,
     AuthModule,
+    EmployeeModule,
+    CertificateModule,
+    DidModule,
   ],
   controllers: [AppController],
   providers: [

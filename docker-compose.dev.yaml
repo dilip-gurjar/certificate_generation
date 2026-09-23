@@ -57,6 +57,8 @@ services:
     container_name: nestjs-app-dev
     restart: unless-stopped
     stop_grace_period: 600s
+    env_file:
+      - .env
     ports:
       - ${PORT}:${PORT}
       - ${METRICS_PORT}:${METRICS_PORT}

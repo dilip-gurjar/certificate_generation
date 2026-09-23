@@ -30,6 +30,8 @@ async function main() {
       }
     }
   }
+
+  // Seed employees
 }
 
 main()

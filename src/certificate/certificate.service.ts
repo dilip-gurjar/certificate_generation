@@ -1,11 +1,11 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { VcService } from 'src/did/vc.service';
-// import { CreateCertificateDto } from './dto/create-certificate.dto';
 
 @Injectable()
 export class CertificateService {
@@ -44,6 +44,10 @@ export class CertificateService {
         throw new NotFoundException('Employee not found');
       }
 
+      if (!employee.did) {
+        throw new BadRequestException('Employee does not have a DID');
+      }
+
       const existingCertificate = await tx.certificate.findUnique({
         where: {
           employeeId,
@@ -59,6 +63,7 @@ export class CertificateService {
       // Create + sign Verifiable Credential
       const signedCredential = await this.vcService.createCredential({
         id: employee.id,
+        did: employee.did,
         name: employee.name,
         workEmail: employee.workEmail,
         joiningDate: employee.joiningDate,
@@ -76,56 +81,6 @@ export class CertificateService {
       return signedCredential;
     });
   }
-
-  //   async create(employeeId: number) {
-  //     return this.prisma.$transaction(async (tx) => {
-  //       const employee = await tx.employee.findUnique({
-  //         where: { id: employeeId },
-  //       });
-
-  //       if (!employee) {
-  //         throw new NotFoundException('Employee not found');
-  //       }
-
-  //       const existingCertificate =
-  //         await tx.certificate.findUnique({
-  //           where: { employeeId },
-  //         });
-
-  //       if (existingCertificate) {
-  //         throw new ConflictException(
-  //           'Certificate already exists for this employee',
-  //         );
-  //       }
-
-  //       const signedCredential =
-  //         await this.vcService.createCredential({
-  //           id: employee.id,
-  //           name: employee.name,
-  //           workEmail: employee.workEmail,
-  //           joiningDate: employee.joiningDate,
-  //           leavingDate: employee.leavingDate,
-  //         });
-
-  //       // Save VC in Employee table
-  //       await tx.employee.update({
-  //         where: { id: employee.id },
-  //         data: {
-  //           certificateData: signedCredential,
-  //         },
-  //       });
-
-  //       // Save VC in Certificate table
-  //       await tx.certificate.create({
-  //         data: {
-  //           employeeId: employee.id,
-  //           verifiableCredentials: signedCredential,
-  //         },
-  //       });
-
-  //       return signedCredential;
-  //     });
-  //   }
 
   async findAll(page: number, limit: number) {
     const skip = (page - 1) * limit;

@@ -1,59 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { Ed25519VerificationKey2020 } from '@digitalbazaar/ed25519-verification-key-2020';
+import { ConfigService } from '@nestjs/config';
+import { Resolver } from 'did-resolver';
+import { getResolver } from 'web-did-resolver';
 import { securityLoader } from '@digitalbazaar/security-document-loader';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 
 @Injectable()
 export class DidService {
-  private readonly did = 'did:web:codesfortomorrow.com';
-
-  async getDidDocument() {
-    const keyPath = path.resolve('secrets/cft-key.json');
-
-    const keyData = JSON.parse(await fs.readFile(keyPath, 'utf8'));
-
-    const key = await Ed25519VerificationKey2020.from(keyData);
-
-    const publicKey = await key.export({
-      publicKey: true,
+  private readonly resolver: Resolver;
+  constructor(private readonly configService: ConfigService) {
+    this.resolver = new Resolver({
+      ...getResolver(),
     });
-
-    const verificationMethodId = `${this.did}#key-1`;
-
-    return {
-      '@context': ['https://www.w3.org/ns/did/v1'],
-
-      id: this.did,
-
-      verificationMethod: [
-        {
-          id: verificationMethodId,
-          type: 'Ed25519VerificationKey2020',
-          controller: this.did,
-          publicKeyMultibase: publicKey.publicKeyMultibase,
-        },
-      ],
-
-      authentication: [verificationMethodId],
-
-      assertionMethod: [verificationMethodId],
-    };
   }
+
+  private get did(): string {
+    return this.configService.getOrThrow<string>('CFT_DID');
+  }
+
   async buildDocumentLoader() {
-    const didDocument = await this.getDidDocument();
-
-    const verificationMethod = didDocument.verificationMethod[0];
-
     const loader = securityLoader();
 
-    // Our CFT DID Document
-    loader.addStatic(this.did, didDocument);
-
-    // Our CFT verification method
-    loader.addStatic(verificationMethod.id, verificationMethod);
-
-    // Our custom EmploymentCertificate context
     loader.addStatic(
       'https://codesfortomorrow.com/credentials/EmploymentCertificate',
       {
@@ -72,6 +38,136 @@ export class DidService {
       },
     );
 
-    return loader.build();
+    const baseDocumentLoader = loader.build();
+
+    return async (url: string) => {
+      if (url.startsWith('did:')) {
+        return this.loadDidDocument(url);
+      }
+
+      return baseDocumentLoader(url);
+    };
   }
+
+  private async loadDidDocument(url: string) {
+    const [did] = url.split('#');
+
+    if (did !== this.did) {
+      throw new Error(`Unsupported DID: ${did}`);
+    }
+
+    const result = await this.resolver.resolve(did);
+
+    if (result.didResolutionMetadata?.error) {
+      throw new Error(
+        `DID resolution failed: ${result.didResolutionMetadata.error}`,
+      );
+    }
+
+    const didDocument = result.didDocument;
+
+    if (!didDocument) {
+      throw new Error(`DID document not found for ${did}`);
+    }
+
+    if (url === did) {
+      return {
+        contextUrl: null,
+        documentUrl: did,
+        document: didDocument,
+      };
+    }
+
+    const fragment = url.substring(url.indexOf('#') + 1);
+
+    const verificationMethod = didDocument.verificationMethod?.find(
+      (method: any) => method.id === url || method.id === `#${fragment}`,
+    );
+
+    if (!verificationMethod) {
+      throw new Error(`Verification method not found: ${url}`);
+    }
+
+    console.log(url);
+    console.log(verificationMethod);
+
+    return {
+      contextUrl: null,
+      documentUrl: url,
+      document: verificationMethod,
+    };
+  }
+
+  // private async loadDidDocument(url: string) {
+  //   const [did] = url.split('#');
+
+  //   if (did !== this.did) {
+  //     throw new Error(`Unsupported DID: ${did}`);
+  //   }
+
+  //   let didDocument: any;
+
+  //   // Local development
+  //   if (process.env.NODE_ENV !== 'production') {
+  //     const response = await fetch(
+  //       'http://localhost:9001/.well-known/did.json',
+  //     );
+
+  //     if (!response.ok) {
+  //       throw new Error(
+  //         `Local DID document fetch failed: ${response.status}`,
+  //       );
+  //     }
+
+  //     didDocument = await response.json();
+  //   } else {
+  //     // Production
+  //     const result = await this.resolver.resolve(did);
+
+  //     if (result.didResolutionMetadata?.error) {
+  //       throw new Error(
+  //         `DID resolution failed: ${result.didResolutionMetadata.error}`,
+  //       );
+  //     }
+
+  //     didDocument = result.didDocument;
+  //   }
+
+  //   if (!didDocument) {
+  //     throw new Error(`DID document not found for ${did}`);
+  //   }
+
+  //   // Whole DID document requested
+  //   if (url === did) {
+  //     return {
+  //       contextUrl: null,
+  //       documentUrl: did,
+  //       document: didDocument,
+  //     };
+  //   }
+
+  //   // DID URL with fragment
+  //   const fragment = url.substring(
+  //     url.indexOf('#') + 1,
+  //   );
+
+  //   const verificationMethod =
+  //     didDocument.verificationMethod?.find(
+  //       (method: any) =>
+  //         method.id === url ||
+  //         method.id === `#${fragment}`,
+  //     );
+
+  //   if (!verificationMethod) {
+  //     throw new Error(
+  //       `Verification method not found: ${url}`,
+  //     );
+  //   }
+
+  //   return {
+  //     contextUrl: null,
+  //     documentUrl: url,
+  //     document: verificationMethod,
+  //   };
+  // }
 }

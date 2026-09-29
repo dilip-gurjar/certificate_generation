@@ -2,20 +2,40 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EmployeeDidService } from 'src/employee-did/employee-did.service';
+import { EncryptionService } from 'src/encryption/encryption.service';
 
 @Injectable()
 export class EmployeeService {
-  constructor(private readonly prisma: PrismaService) {}
-  create(createEmployeeDto: CreateEmployeeDto) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly employeeDidService: EmployeeDidService,
+    private readonly encryptionService: EncryptionService,
+  ) {}
+  async create(createEmployeeDto: CreateEmployeeDto) {
+    const didData = await this.employeeDidService.generateDid();
+
+    const encryptedPrivateKey = this.encryptionService.encrypt(
+      didData.privateKeyMultibase,
+    );
+
     return this.prisma.employee.create({
       data: {
         name: createEmployeeDto.name,
         workEmail: createEmployeeDto.workEmail,
         personalEmail: createEmployeeDto.personalEmail,
+
         joiningDate: new Date(createEmployeeDto.joiningDate),
+
         leavingDate: createEmployeeDto.leavingDate
           ? new Date(createEmployeeDto.leavingDate)
           : null,
+
+        did: didData.did,
+
+        publicKey: didData.publicKeyMultibase,
+
+        encryptedPrivateKey,
       },
     });
   }

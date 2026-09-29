@@ -8,7 +8,6 @@ import {
   Get,
 } from '@nestjs/common';
 import { CertificateService } from './certificate.service';
-import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('certificate')

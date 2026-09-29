@@ -63,3 +63,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 *.pem
 cft-did-key.json
+
+secrets/

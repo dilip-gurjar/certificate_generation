@@ -4,7 +4,7 @@ import path from 'node:path';
 const did = 'did:web:codesfortomorrow.com';
 // const key = await Ed25519VerificationKey2020.generate();
 const key = await Ed25519VerificationKey2020.generate({
-  id: `${did}#key-1`,
+  id: `${did}#cft-signing-key`,
   controller: did,
 });
 

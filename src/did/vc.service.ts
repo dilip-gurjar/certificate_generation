@@ -2,55 +2,51 @@ import { Injectable } from '@nestjs/common';
 import { Ed25519VerificationKey2020 } from '@digitalbazaar/ed25519-verification-key-2020';
 import { Ed25519Signature2020 } from '@digitalbazaar/ed25519-signature-2020';
 import * as vc from '@digitalbazaar/vc';
-import { securityLoader } from '@digitalbazaar/security-document-loader';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import crypto from 'node:crypto';
 import { DidService } from './did.service';
-// import { AssertionProofPurpose } from '@digitalbazaar/ed25519-signature-2020';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class VcService {
-  constructor(private readonly didService: DidService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly didService: DidService,
+  ) {}
 
-  private readonly issuerDid = 'did:web:codesfortomorrow.com';
-
-  async verifyCredential(credential: any) {
-    const suite = new Ed25519Signature2020();
-
-    const documentLoader = await this.didService.buildDocumentLoader();
-
-    const result = await vc.verifyCredential({
-      credential,
-      suite,
-      documentLoader,
-    });
-
-    return {
-      verified: result.verified ?? result.valid,
-      error: result.error ?? null,
-    };
+  private get issuerDid(): string {
+    return this.configService.getOrThrow<string>('CFT_DID');
   }
 
   async createCredential(employee: {
     id: number;
+    did: string;
     name: string;
     workEmail: string;
     joiningDate: Date;
     leavingDate: Date | null;
   }) {
     // 1. Load CFT's existing key
-    const keyPath = path.resolve('secrets/cft-key.json');
+    const keyId = this.configService.getOrThrow<string>('CFT_KEY_ID');
 
-    const keyData = JSON.parse(await fs.readFile(keyPath, 'utf8'));
+    // console.log('CFT_KEY_ID:', keyId);
 
-    const key = await Ed25519VerificationKey2020.from(keyData); //Ye raw JSON key data ko Digital Bazaar ke key object mein convert karta hai.
+    const privateKeyMultibase = this.configService.getOrThrow<string>(
+      'CFT_PRIVATE_KEY_MULTIBASE',
+    );
+    const publicKeyMultibase = this.configService.getOrThrow<string>(
+      'CFT_PUBLIC_KEY_MULTIBASE',
+    );
+
+    const key = await Ed25519VerificationKey2020.from({
+      id: keyId,
+      controller: this.issuerDid,
+      type: 'Ed25519VerificationKey2020',
+      publicKeyMultibase,
+      privateKeyMultibase,
+    });
 
     // 2. Create signature suite
-    const suite = new Ed25519Signature2020({
-      //VC ko Ed25519Signature2020 algorithm ke according sign karo aur ye CFT key use karo.
-      key,
-    });
+    const suite = new Ed25519Signature2020({ key });
 
     // 3. Create unsigned VC
     const credential = {
@@ -76,7 +72,7 @@ export class VcService {
       // issuanceDate: new Date().toISOString(),
 
       credentialSubject: {
-        id: `employee:${employee.id}`,
+        id: employee.did,
         name: employee.name,
         workEmail: employee.workEmail,
         joiningDate: employee.joiningDate.toISOString(),
@@ -85,7 +81,7 @@ export class VcService {
     };
 
     // 4. Create document loader
-    const documentLoader = securityLoader().build(); //Required JSON-LD/security documents kahan milenge?
+    const documentLoader = await this.didService.buildDocumentLoader(); //Required JSON-LD/security documents kahan milenge?
 
     try {
       const signedCredential = await vc.issue({
@@ -99,5 +95,22 @@ export class VcService {
       console.error('VC ISSUE ERROR:', error);
       throw error;
     }
+  }
+
+  async verifyCredential(credential: any) {
+    const suite = new Ed25519Signature2020();
+
+    const documentLoader = await this.didService.buildDocumentLoader();
+
+    const result = await vc.verifyCredential({
+      credential,
+      suite,
+      documentLoader,
+    });
+
+    return {
+      verified: result.verified ?? result.valid,
+      error: result.error ?? null,
+    };
   }
 }

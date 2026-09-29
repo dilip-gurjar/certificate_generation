@@ -162,16 +162,16 @@ enum SettingContext {
 }
 
 model Employee {
-  id              Int       @id @default(autoincrement())
-  name            String
-  workEmail       String    @unique
-  personalEmail   String?   @unique
-  joiningDate     DateTime
-  leavingDate     DateTime?
-  did             String?   @unique
-  organizationDid String?
+  id            Int       @id @default(autoincrement())
+  name          String
+  workEmail     String    @unique
+  personalEmail String?   @unique
+  joiningDate   DateTime
+  leavingDate   DateTime?
+  did           String?   @unique
 
-  certificateData Json?
+  publicKey           String?
+  encryptedPrivateKey String?
 
   createdAt   DateTime     @default(now())
   certificate Certificate?

@@ -85,6 +85,7 @@
     "credentials-context": "^2.0.0",
     "dayjs": "^1.11.19",
     "did-method-key": "^0.7.0",
+    "did-resolver": "^4.1.0",
     "dotenv": "^17.2.3",
     "ed25519-signature-2020-context": "^1.1.0",
     "helmet": "^8.1.0",
@@ -103,6 +104,7 @@
     "rimraf": "^6.1.2",
     "rxjs": "^7.8.2",
     "snarkjs": "^0.7.6",
+    "web-did-resolver": "^2.0.32",
     "winston": "^3.18.3",
     "winston-mongodb": "^7.0.1"
   },

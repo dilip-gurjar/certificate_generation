@@ -16,6 +16,11 @@ import { RedisModule } from './redis';
 import { EmployeeModule } from './employee/employee.module';
 import { CertificateModule } from './certificate/certificate.module';
 import { DidModule } from './did/did.module';
+import { EncryptionService } from './encryption/encryption.service';
+import { EncryptionModule } from './encryption/encryption.module';
+import { EmployeeDidService } from './employee-did/employee-did.service';
+import { EmployeeDidController } from './employee-did/employee-did.controller';
+import { EmployeeDidModule } from './employee-did/employee-did.module';
 
 @Module({
   imports: [
@@ -42,8 +47,10 @@ import { DidModule } from './did/did.module';
     EmployeeModule,
     CertificateModule,
     DidModule,
+    EncryptionModule,
+    EmployeeDidModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, EmployeeDidController],
   providers: [
     {
       provide: APP_INTERCEPTOR,
@@ -61,6 +68,8 @@ import { DidModule } from './did/did.module';
       provide: APP_INTERCEPTOR,
       useClass: AppCacheInterceptor,
     },
+    EncryptionService,
+    EmployeeDidService,
   ],
 })
 export class AppModule {}

@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { Cache } from 'cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { adminConfigFactory } from '@Config';
@@ -13,7 +13,9 @@ import {
 } from '@Common';
 import { PrismaService } from '../prisma';
 import { Admin, AdminMeta, Prisma } from '../generated/prisma/client';
-import { AdminStatus } from '../generated/prisma/enums';
+import { AdminStatus, OtpTransport } from '../generated/prisma/enums';
+
+import { OtpContext, OtpService } from '../otp';
 
 @Injectable()
 export class AdminService {
@@ -24,6 +26,7 @@ export class AdminService {
     private readonly prisma: PrismaService,
     private readonly utilsService: UtilsService,
     private readonly storageService: StorageService,
+    // private readonly otpService: OtpService,
   ) {}
 
   private getProfileImageUrl(profileImage: string): string {
@@ -231,6 +234,41 @@ export class AdminService {
       data: { status },
       where: {
         id: userId,
+      },
+    });
+  }
+
+  async createAdmin(data: {
+    firstname: string;
+    lastname: string;
+    email: string;
+    password: string;
+  }) {
+    const existingAdmin = await this.prisma.admin.findUnique({
+      where: {
+        email: data.email,
+      },
+    });
+    if (existingAdmin) {
+      throw new ConflictException('Admin with this email already exists');
+    }
+    const salt = this.utilsService.generateSalt(this.config.passwordSaltLength);
+    const hash = this.utilsService.hashPassword(
+      data.password,
+      salt,
+      this.config.passwordHashLength,
+    );
+    return await this.prisma.admin.create({
+      data: {
+        firstname: data.firstname,
+        lastname: data.lastname,
+        email: data.email,
+        meta: {
+          create: {
+            passwordSalt: salt,
+            passwordHash: hash,
+          },
+        },
       },
     });
   }

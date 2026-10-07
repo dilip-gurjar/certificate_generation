@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
-
+//AES-256
 @Injectable()
 export class EncryptionService {
   private readonly key: Buffer;
@@ -19,9 +19,11 @@ export class EncryptionService {
   }
 
   encrypt(value: string): string {
-    const iv = randomBytes(12);
+    const iv = randomBytes(12); //IV = Initialization Vector
 
     const cipher = createCipheriv('aes-256-gcm', this.key, iv);
+
+    // Cipher ek object/tool hai jo encryption operation perform karta hai.
 
     const encrypted = Buffer.concat([
       cipher.update(value, 'utf8'),

@@ -14,8 +14,22 @@ export type ResetPasswordVerificationCodeMailTemplate = {
   data: VerificationCodeMailPayload;
 };
 
+type EmployeeCredentialsMailPayload = {
+  employeeName: string;
+  email: string;
+  password: string;
+  loginUrl: string;
+  publicKey: string;
+  privateKey: string;
+};
+export type EmployeeCredentialsMailTemplate = {
+  name: 'employee-credentials';
+  data: EmployeeCredentialsMailPayload;
+};
+
 export type MailTemplate =
   | RegisterVerificationCodeMailTemplate
-  | ResetPasswordVerificationCodeMailTemplate;
+  | ResetPasswordVerificationCodeMailTemplate
+  | EmployeeCredentialsMailTemplate;
 
 export type MailParams = { subject: string; template: MailTemplate };

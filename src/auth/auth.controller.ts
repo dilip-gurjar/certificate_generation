@@ -34,8 +34,13 @@ import {
   InvalidVerifyCodeResponse,
   ValidAuthResponse,
 } from './auth.service';
-import { GoogleOAuthGuard, LocalAuthGuard } from './guards';
 import {
+  GoogleOAuthGuard,
+  LocalAuthGuard,
+  EmployeeLocalAuthGuard,
+} from './guards';
+import {
+  EmployeeLoginRequestDto,
   ForgotPasswordRequestDto,
   RegisterUserRequestDto,
   ResetPasswordRequestDto,
@@ -44,6 +49,7 @@ import {
 } from './dto';
 import { SendCodeResponse } from '../otp';
 import { OtpTransport } from '../generated/prisma/client';
+import { AdminRegisterRequestDto } from './dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -182,6 +188,28 @@ export class AuthController extends BaseController {
     );
     this.setAuthCookie(res, accessToken, type, expiresIn);
     return { accessToken, expiresIn, type };
+  }
+
+  @ApiBody({ type: () => EmployeeLoginRequestDto })
+  @UseGuards(EmployeeLocalAuthGuard)
+  @HttpCode(200)
+  @Post('employee/login')
+  async employeeLogin(
+    @Req() req: Request & { user: ValidatedUser },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, expiresIn, type } = await this.authService.login(
+      req.user.id,
+      req.user.type,
+    );
+
+    this.setAuthCookie(res, accessToken, type, expiresIn);
+
+    return {
+      accessToken,
+      expiresIn,
+      type,
+    };
   }
 
   @UseGuards(GoogleOAuthGuard)

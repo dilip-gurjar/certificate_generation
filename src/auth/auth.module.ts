@@ -8,12 +8,16 @@ import { GoogleStrategy, LocalStrategy } from './strategies';
 import { AdminModule } from '../admin';
 import { UsersModule } from '../users';
 import { OtpModule } from '../otp';
+import { EmployeeLocalStrategy } from './strategies/employee-local.strategy';
+import { EmployeeModule } from 'src/employee/employee.module';
 
 @Module({
   imports: [
     AdminModule,
     UsersModule,
     OtpModule,
+    EmployeeModule,
+
     JwtModule.registerAsync({
       useFactory: (config: ConfigType<typeof jwtConfigFactory>) => ({
         secret: config.secret,
@@ -23,7 +27,12 @@ import { OtpModule } from '../otp';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, GoogleStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    GoogleStrategy,
+    EmployeeLocalStrategy,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

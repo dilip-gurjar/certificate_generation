@@ -9,7 +9,7 @@ export class DidService {
   private readonly resolver: Resolver;
   constructor(private readonly configService: ConfigService) {
     this.resolver = new Resolver({
-      ...getResolver(),
+      ...getResolver(), //resolver ko batata hai ki did:web DID ko kaise resolve karna hai.
     });
   }
 
@@ -42,10 +42,10 @@ export class DidService {
 
     return async (url: string) => {
       if (url.startsWith('did:')) {
-        return this.loadDidDocument(url);
+        return this.loadDidDocument(url); // DID resolver
       }
 
-      return baseDocumentLoader(url);
+      return baseDocumentLoader(url); // security + custom contexts
     };
   }
 
@@ -65,6 +65,7 @@ export class DidService {
     }
 
     const didDocument = result.didDocument;
+    // console.log("dcmt",didDocument);
 
     if (!didDocument) {
       throw new Error(`DID document not found for ${did}`);
@@ -79,6 +80,7 @@ export class DidService {
     }
 
     const fragment = url.substring(url.indexOf('#') + 1);
+    // console.log(fragment)
 
     const verificationMethod = didDocument.verificationMethod?.find(
       (method: any) => method.id === url || method.id === `#${fragment}`,
@@ -88,86 +90,10 @@ export class DidService {
       throw new Error(`Verification method not found: ${url}`);
     }
 
-    console.log(url);
-    console.log(verificationMethod);
-
     return {
       contextUrl: null,
       documentUrl: url,
       document: verificationMethod,
     };
   }
-
-  // private async loadDidDocument(url: string) {
-  //   const [did] = url.split('#');
-
-  //   if (did !== this.did) {
-  //     throw new Error(`Unsupported DID: ${did}`);
-  //   }
-
-  //   let didDocument: any;
-
-  //   // Local development
-  //   if (process.env.NODE_ENV !== 'production') {
-  //     const response = await fetch(
-  //       'http://localhost:9001/.well-known/did.json',
-  //     );
-
-  //     if (!response.ok) {
-  //       throw new Error(
-  //         `Local DID document fetch failed: ${response.status}`,
-  //       );
-  //     }
-
-  //     didDocument = await response.json();
-  //   } else {
-  //     // Production
-  //     const result = await this.resolver.resolve(did);
-
-  //     if (result.didResolutionMetadata?.error) {
-  //       throw new Error(
-  //         `DID resolution failed: ${result.didResolutionMetadata.error}`,
-  //       );
-  //     }
-
-  //     didDocument = result.didDocument;
-  //   }
-
-  //   if (!didDocument) {
-  //     throw new Error(`DID document not found for ${did}`);
-  //   }
-
-  //   // Whole DID document requested
-  //   if (url === did) {
-  //     return {
-  //       contextUrl: null,
-  //       documentUrl: did,
-  //       document: didDocument,
-  //     };
-  //   }
-
-  //   // DID URL with fragment
-  //   const fragment = url.substring(
-  //     url.indexOf('#') + 1,
-  //   );
-
-  //   const verificationMethod =
-  //     didDocument.verificationMethod?.find(
-  //       (method: any) =>
-  //         method.id === url ||
-  //         method.id === `#${fragment}`,
-  //     );
-
-  //   if (!verificationMethod) {
-  //     throw new Error(
-  //       `Verification method not found: ${url}`,
-  //     );
-  //   }
-
-  //   return {
-  //     contextUrl: null,
-  //     documentUrl: url,
-  //     document: verificationMethod,
-  //   };
-  // }
 }

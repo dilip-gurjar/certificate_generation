@@ -29,6 +29,7 @@ export class MailProcessor extends BaseProcessor {
     if (typeof mailBodyOrTemplate !== 'string') {
       mailBodyOrTemplate =
         await this.mailService.renderTemplate(mailBodyOrTemplate);
+      // console.log("mailBodyOrTemplate=====",mailBodyOrTemplate)
     }
 
     const mailOptions = this.mailService.configureMessage(

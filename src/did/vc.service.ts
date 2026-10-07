@@ -25,10 +25,7 @@ export class VcService {
     joiningDate: Date;
     leavingDate: Date | null;
   }) {
-    // 1. Load CFT's existing key
     const keyId = this.configService.getOrThrow<string>('CFT_KEY_ID');
-
-    // console.log('CFT_KEY_ID:', keyId);
 
     const privateKeyMultibase = this.configService.getOrThrow<string>(
       'CFT_PRIVATE_KEY_MULTIBASE',
@@ -36,6 +33,8 @@ export class VcService {
     const publicKeyMultibase = this.configService.getOrThrow<string>(
       'CFT_PUBLIC_KEY_MULTIBASE',
     );
+
+    // from() ka kaam raw/existing key material ko VC/DID ecosystem ke expected structured key object mein load karna
 
     const key = await Ed25519VerificationKey2020.from({
       id: keyId,

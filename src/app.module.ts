@@ -19,7 +19,7 @@ import { DidModule } from './did/did.module';
 import { EncryptionService } from './encryption/encryption.service';
 import { EncryptionModule } from './encryption/encryption.module';
 import { EmployeeDidService } from './employee-did/employee-did.service';
-import { EmployeeDidController } from './employee-did/employee-did.controller';
+// import { EmployeeDidController } from './employee-did/employee-did.controller';
 import { EmployeeDidModule } from './employee-did/employee-did.module';
 
 @Module({
@@ -50,7 +50,7 @@ import { EmployeeDidModule } from './employee-did/employee-did.module';
     EncryptionModule,
     EmployeeDidModule,
   ],
-  controllers: [AppController, EmployeeDidController],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_INTERCEPTOR,

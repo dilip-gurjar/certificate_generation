@@ -3,6 +3,7 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { JwtPayload, UserType } from '@Common';
 import { SendCodeRequestType } from './dto';
 import { UsersService } from '../users';
+import { AdminService } from '../admin/admin.service';
 import {
   OtpContext,
   OtpService,
@@ -28,6 +29,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
     private readonly otpService: OtpService,
+    private readonly adminService: AdminService,
   ) {}
 
   private async generateJwt(
@@ -81,6 +83,7 @@ export class AuthService {
       sub: userId,
       type,
     });
+    // console.log("jwt", token +"   ");
     return {
       accessToken: token,
       expiresIn,

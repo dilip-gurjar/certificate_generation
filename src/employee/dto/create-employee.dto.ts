@@ -1,4 +1,10 @@
-import { IsDateString, IsEmail, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEmail,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateEmployeeDto {
@@ -14,6 +20,10 @@ export class CreateEmployeeDto {
   @IsOptional()
   @IsEmail()
   personalEmail?: string;
+
+  // @IsString()
+  // @MinLength(6)
+  // password!: string;
 
   @ApiProperty({
     example: '2026-01-10',

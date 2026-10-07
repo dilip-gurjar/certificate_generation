@@ -99,6 +99,7 @@ export interface File {
 export enum UserType {
   User = 'user',
   Admin = 'admin',
+  Employee = 'employee',
 }
 
 export interface JwtPayload {

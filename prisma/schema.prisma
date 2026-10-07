@@ -162,27 +162,36 @@ enum SettingContext {
 }
 
 model Employee {
-  id            Int       @id @default(autoincrement())
-  name          String
-  workEmail     String    @unique
-  personalEmail String?   @unique
-  joiningDate   DateTime
-  leavingDate   DateTime?
-  did           String?   @unique
+  id             Int     @id @default(autoincrement())
+  name           String
+  workEmail      String  @unique @map("work_email")
+  personalEmail  String? @unique @map("personal_email")
+  passwordHash   String? @map("password_hash")
+  passwordSalt   String? @map("password_salt")
+  accessUrlToken String? @unique @map("access_url_token")
 
-  publicKey           String?
-  encryptedPrivateKey String?
+  joiningDate DateTime  @map("joining_date")
+  leavingDate DateTime? @map("leaving_date")
+  did         String?   @unique
 
-  createdAt   DateTime     @default(now())
+  publicKey           String? @map("public_key")
+  encryptedPrivateKey String? @map("encrypted_private_key")
+
+  createdAt   DateTime     @default(now()) @map("created_at")
   certificate Certificate?
-  deletedAt   DateTime?
+  deletedAt   DateTime?    @map("deleted_at")
+
+  @@map("employee")
 }
 
 model Certificate {
   id                    Int      @id @default(autoincrement())
-  employeeId            Int      @unique
-  verifiableCredentials Json
-  issuedAt              DateTime @default(now())
+  employeeId            Int?     @unique @map("employee_id")
+  verifiableCredentials Json     @map("verifiable_credentials")
+  issuedAt              DateTime @default(now()) @map("issued_at")
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  shareToken String?   @unique @map("share_token")
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+
+  @@map("certificate")
 }

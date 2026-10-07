@@ -111,27 +111,4 @@ export class EmployeeDidService {
 
     return verificationKey;
   }
-  async testKeyPair(employeeId: number) {
-    const key = await this.getVerificationKey(employeeId);
-
-    const message = new TextEncoder().encode('employee-did-test');
-
-    const signer = key.signer();
-
-    const signature = await signer.sign({
-      data: message,
-    });
-
-    const verifier = key.verifier();
-
-    const verified = await verifier.verify({
-      data: message,
-      signature,
-    });
-
-    return {
-      verified,
-      message: 'employee-did-test',
-    };
-  }
 }

@@ -102,6 +102,7 @@ async function bootstrap() {
       });
     }
 
+    app.enableCors({ origin: 'http://localhost:5173' });
     await app.listen(configService.get('PORT'));
 
     // Send messages to the parent process if server spawned with an IPC channel

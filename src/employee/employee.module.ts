@@ -9,5 +9,6 @@ import { EncryptionModule } from 'src/encryption/encryption.module';
   imports: [PrismaModule, EncryptionModule, EmployeeDidModule],
   controllers: [EmployeeController],
   providers: [EmployeeService],
+  exports: [EmployeeService],
 })
 export class EmployeeModule {}

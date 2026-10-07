@@ -4,9 +4,11 @@ import { CertificateController } from './certificate.controller';
 import { PrismaModule } from 'src/prisma';
 import { VcService } from 'src/did/vc.service';
 import { DidModule } from 'src/did/did.module';
+import { MailModule } from 'src/mail';
+import { EncryptionModule } from 'src/encryption/encryption.module';
 
 @Module({
-  imports: [PrismaModule, DidModule],
+  imports: [MailModule, PrismaModule, DidModule, EncryptionModule],
   providers: [CertificateService, VcService],
   controllers: [CertificateController],
 })

@@ -22,11 +22,11 @@ export class CertificateController {
     return this.certificateService.create(employeeId);
   }
 
-  @Get(':id/verify')
-  @DisableCache()
-  async verify(@Param('id', ParseIntPipe) id: number) {
-    return this.certificateService.verify(id);
-  }
+  // @Get(':id/verify')
+  // @DisableCache()
+  // async verify(@Param('id', ParseIntPipe) id: number) {
+  //   return this.certificateService.verify(id);
+  // }
 
   @Get()
   @DisableCache()
@@ -38,8 +38,8 @@ export class CertificateController {
       ();
   }
 
-  @Get('public/:shareToken')
-  async getPublicCertificate(@Param('shareToken') shareToken: string) {
-    return this.certificateService.getPublicCertificate(shareToken);
-  }
+  // @Get('public/:shareToken')
+  // async getPublicCertificate(@Param('shareToken') shareToken: string) {
+  //   return this.certificateService.getPublicCertificate(shareToken);
+  // }
 }

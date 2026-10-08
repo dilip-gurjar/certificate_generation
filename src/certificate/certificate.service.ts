@@ -40,24 +40,24 @@ export class CertificateService {
 
   // const publicKey = employee.publicKey!;
 
-  async verify(id: number) {
-    const certificate = await this.prisma.certificate.findUnique({
-      where: { id },
-    });
+  // async verify(id: number) {
+  //   const certificate = await this.prisma.certificate.findUnique({
+  //     where: { id },
+  //   });
 
-    if (!certificate) {
-      throw new NotFoundException('Certificate not found');
-    }
+  //   if (!certificate) {
+  //     throw new NotFoundException('Certificate not found');
+  //   }
 
-    const result = await this.vcService.verifyCredential(
-      certificate.verifiableCredentials,
-    );
+  //   const result = await this.vcService.verifyCredential(
+  //     certificate.verifiableCredentials,
+  //   );
 
-    return {
-      verified: result.verified,
-      error: result.error,
-    };
-  }
+  //   return {
+  //     verified: result.verified,
+  //     error: result.error,
+  //   };
+  // }
 
   async create(employeeId: number) {
     const employee = await this.prisma.employee.findUnique({
@@ -167,43 +167,43 @@ export class CertificateService {
     };
   }
 
-  async getPublicCertificate(shareToken: string) {
-    const certificate = await this.prisma.certificate.findUnique({
-      where: {
-        shareToken,
-      },
-      select: {
-        id: true,
-        verifiableCredentials: true,
-        issuedAt: true,
-        employee: {
-          select: {
-            name: true,
-            did: true,
-          },
-        },
-      },
-    });
+  // async getPublicCertificate(shareToken: string) {
+  //   const certificate = await this.prisma.certificate.findUnique({
+  //     where: {
+  //       shareToken,
+  //     },
+  //     select: {
+  //       id: true,
+  //       verifiableCredentials: true,
+  //       issuedAt: true,
+  //       employee: {
+  //         select: {
+  //           name: true,
+  //           did: true,
+  //         },
+  //       },
+  //     },
+  //   });
 
-    if (!certificate) {
-      throw new NotFoundException('Certificate not found');
-    }
-    //   vc verification n
-    const result = await this.vcService.verifyCredential(
-      certificate.verifiableCredentials,
-    );
+  //   if (!certificate) {
+  //     throw new NotFoundException('Certificate not found');
+  //   }
+  //   //   vc verification n
+  //   const result = await this.vcService.verifyCredential(
+  //     certificate.verifiableCredentials,
+  //   );
 
-    return {
-      certificate: {
-        id: certificate.id,
-        verifiableCredentials: certificate.verifiableCredentials,
-        issuedAt: certificate.issuedAt,
-        employee: certificate.employee,
-      },
-      verification: {
-        verified: result.verified,
-        error: result.error,
-      },
-    };
-  }
+  //   return {
+  //     certificate: {
+  //       id: certificate.id,
+  //       verifiableCredentials: certificate.verifiableCredentials,
+  //       issuedAt: certificate.issuedAt,
+  //       employee: certificate.employee,
+  //     },
+  //     verification: {
+  //       verified: result.verified,
+  //       error: result.error,
+  //     },
+  //   };
+  // }
 }
